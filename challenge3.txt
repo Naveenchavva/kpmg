@@ -1,0 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
+
+namespace ConsoleApp7
+{
+    class Class3
+    {
+        public int Z { get; set; }
+        public Class3()
+        {
+            Z = 100;
+        }
+    }
+    class Class2
+    {
+        public Class3 Y { get; set; }
+        public Class2()
+        {
+            Y = new Class3(); 
+        }
+    }
+    class Class1 {
+        public Class2 X { get; set; }
+        public Class1()
+        {
+            X = new Class2();
+        }
+
+    }
+    public class IdenentifyKeyInObject
+    {
+        public Object IdentifyValueUsingKey(Object obj, string keys)
+        {
+            string[] keyList = keys.Split('/');
+            if (keyList.Length == 1)
+            {
+                PropertyInfo propertyInfo = obj.GetType().GetProperties().FirstOrDefault(x => x.Name == keyList[0]);
+                if (propertyInfo != null && (propertyInfo.PropertyType.IsPrimitive || propertyInfo.PropertyType==typeof(string)))
+                {
+                    return propertyInfo.GetValue(obj);
+                }
+                else {
+                    throw new Exception("Invalid Key");
+                }
+            }
+            else if (keyList.Length > 1)
+            {
+                if (obj.GetType().IsClass)
+                {
+                    PropertyInfo propertyInfo = obj.GetType().GetProperties().FirstOrDefault(x => x.Name == keyList[0]);
+                    if (propertyInfo!=null && propertyInfo.PropertyType.IsClass)
+                    {
+                       return IdentifyValueUsingKey(propertyInfo.GetValue(obj), string.Join("/", keyList.Skip(1).ToList().Select(x => x.ToString()).ToList()));
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid Key");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Invalid Key");
+                }
+            }
+            else
+            {
+                throw new Exception("Invalid Key");
+            }
+
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IdenentifyKeyInObject idenentifyKeyInObject = new IdenentifyKeyInObject();
+            string key = "X/Y/Z";
+            var result= idenentifyKeyInObject.IdentifyValueUsingKey(new Class1(), key);
+            Console.WriteLine("Value for the Key " + key + ": " + result);
+            Console.ReadLine();
+        }
+    }
+}
